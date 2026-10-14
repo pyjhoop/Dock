@@ -206,10 +206,16 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
         let app = app.clone();
         let acc_id = acc_id.to_string();
         let ok = recipe.login_success.clone();
+        // 직접 입력 서비스는 성공 패턴이 없으므로, 같은 호스트의 로그인 페이지가 아닌 곳으로 이동하면 성공으로 본다
+        let custom_hosts = if recipe.key == "custom" { recipe.subs.first().map(|s| s.handled.clone()).unwrap_or_default() } else { Vec::new() };
         b = b.on_page_load(move |_wv, p| {
             if p.event() == PageLoadEvent::Finished {
                 let u = p.url().as_str().to_string();
-                if !u.to_lowercase().contains("setosid") && matches_any(&ok, &u) {
+                let lu = u.to_lowercase();
+                let custom_ok = !custom_hosts.is_empty()
+                    && matches_any(&custom_hosts, &u)
+                    && !["login", "signin", "sign-in", "logon"].iter().any(|k| lu.contains(k));
+                if !lu.contains("setosid") && (matches_any(&ok, &u) || custom_ok) {
                     let _ = app.emit("login-success", json!({ "account": acc_id }));
                 }
             }
