@@ -12,6 +12,7 @@
       <div id="accounts"></div>
       <button class="rail-btn" id="btn-add" title="서비스 추가"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
       <div class="spacer"></div>
+      <button class="rail-btn" id="btn-ai" title="Claude 도우미"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg></button>
       <button class="rail-btn" id="btn-downloads" title="다운로드"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg><span class="dot" id="dl-dot" hidden></span></button>
       <button class="rail-btn" id="btn-lock" title="잠금 (Ctrl+L)"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></button>
       <button class="rail-btn" id="btn-settings" title="설정"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
@@ -34,6 +35,54 @@
       <div id="content"><div id="empty">서비스를 추가해 시작하세요</div></div>
     </section>
   </div>
+  <aside id="aipanel" hidden>
+    <div id="ai-grip" title="끌어서 너비 조절 (더블클릭: 기본값)"></div>
+    <header><b>Claude</b><span class="muted" id="ai-scope">지금 보는 화면 읽기 전용</span><div class="spacer"></div>
+      <button class="icon" id="ai-reset" title="새 대화"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.7M20 4v5h-5"/></svg></button>
+      <button class="icon" id="ai-close" title="닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div id="ai-log"></div>
+    <form id="ai-form">
+      <div class="ai-composer">
+        <textarea id="ai-input" rows="2" placeholder="지금 보는 화면에 대해 물어보세요"></textarea>
+        <div class="ai-foot">
+          <select id="ai-model" title="Model"><option value="">Model: Default</option><option value="fable">Model: Fable</option><option value="opus">Model: Opus</option><option value="sonnet">Model: Sonnet</option><option value="haiku">Model: Haiku</option></select>
+          <select id="ai-effort" title="Effort"><option value="">Effort: Default</option><option value="low">Effort: Low</option><option value="medium">Effort: Medium</option><option value="high">Effort: High</option><option value="xhigh">Effort: XHigh</option><option value="max">Effort: Max</option></select>
+          <div class="spacer"></div>
+          <button class="ai-send" id="ai-send" type="submit" title="보내기"></button>
+        </div>
+      </div>
+    </form>
+  </aside>
+    <section id="main">
+      <header id="bar">
+        <div id="tabs"></div>
+        <div class="bar-actions">
+          <button class="icon" id="nav-back" title="뒤로"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <button class="icon" id="nav-forward" title="앞으로"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+          <button class="icon" id="nav-reload" title="새로고침 (Ctrl+R)"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.7M20 4v5h-5"/></svg></button>
+          <button class="icon" id="nav-home" title="처음 화면"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg></button>
+        </div>
+      </header>
+      <div id="offline" hidden>오프라인 상태예요. 연결되면 자동으로 다시 불러올게요.</div>
+      <div id="loginbar" hidden>
+        <span id="login-text"></span>
+        <button class="primary" id="btn-login-done">로그인 완료</button>
+      </div>
+      <div id="content"><div id="empty">서비스를 추가해 시작하세요</div></div>
+    </section>
+  </div>
+  <aside id="aipanel" hidden>
+    <div id="ai-grip" title="끌어서 너비 조절 (더블클릭: 기본값)"></div>
+    <header><b>Claude</b><span class="muted" id="ai-scope">지금 보는 화면 읽기 전용</span><div class="spacer"></div>
+      <button class="icon" id="ai-reset" title="새 대화"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.7M20 4v5h-5"/></svg></button>
+      <button class="icon" id="ai-close" title="닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div id="ai-log"></div>
+    <div id="ai-opts">
+      <select id="ai-model" title="모델"><option value="">모델: 기본</option><option value="fable">Fable</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select>
+      <select id="ai-effort" title="추론 강도"><option value="">강도: 기본</option><option value="low">낮음</option><option value="medium">보통</option><option value="high">높음</option><option value="xhigh">매우 높음</option><option value="max">최대</option></select>
+    </div>
+    <form id="ai-form"><textarea id="ai-input" rows="2" placeholder="지금 보는 화면에 대해 물어보세요"></textarea><button class="primary" id="ai-send" type="submit">보내기</button></form>
+  </aside>
   <div id="modal" hidden></div>
   <div id="lock" hidden>
     <form id="lock-form">

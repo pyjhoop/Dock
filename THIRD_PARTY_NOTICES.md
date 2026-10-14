@@ -26,13 +26,13 @@ Dock 자체는 [MIT License](LICENSE)로 배포됩니다. 아래는 Dock 빌드�
 
 ## 3. Rust 의존성
 
-Windows 빌드에 포함되는 크레이트 292개의 라이선스 분포:
+Windows 빌드에 포함되는 크레이트 290개의 라이선스 분포:
 
 | 라이선스 표기 | 개수 |
 |---|---:|
 | MIT OR Apache-2.0 | 143 |
 | MIT | 49 |
-| Apache-2.0 OR MIT | 34 |
+| Apache-2.0 OR MIT | 32 |
 | Unicode-3.0 | 18 |
 | Unlicense OR MIT | 9 |
 | MIT/Apache-2.0 | 5 |
@@ -271,8 +271,6 @@ GPL, LGPL, AGPL 계열 의존성은 포함되어 있지 않습니다(위 표기 
 | tauri-macros | 2.7.2 | Apache-2.0 OR MIT | https://github.com/tauri-apps/tauri |
 | tauri-plugin | 2.7.1 | Apache-2.0 OR MIT | https://github.com/tauri-apps/tauri |
 | tauri-plugin-autostart | 2.7.0 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace |
-| tauri-plugin-dialog | 2.8.2 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace |
-| tauri-plugin-fs | 2.7.0 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace |
 | tauri-plugin-global-shortcut | 2.4.1 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace |
 | tauri-plugin-notification | 2.6.0 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace |
 | tauri-plugin-opener | 2.7.1 | Apache-2.0 OR MIT | https://github.com/tauri-apps/plugins-workspace |

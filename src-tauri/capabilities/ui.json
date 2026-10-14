@@ -12,6 +12,7 @@
     "allow-set-overlay", "allow-reload-view", "allow-view-nav", 
     "allow-set-passcode", "allow-clear-passcode", "allow-unlock", "allow-lock-app",
     "allow-list-downloads", "allow-download-action", "allow-clear-downloads",
-    "allow-quit-app", "allow-finish-login", "allow-open-external", "allow-pick-folder", "allow-test-notification", "allow-check-update", "allow-install-update-cmd"
+    "allow-quit-app", "allow-finish-login", "allow-open-external", "allow-pick-folder", "allow-test-notification", "allow-check-update", "allow-install-update-cmd",
+    "allow-ai-status", "allow-ai-ask", "allow-ai-cancel", "allow-ai-reset", "allow-ai-confirm"
   ]
 }

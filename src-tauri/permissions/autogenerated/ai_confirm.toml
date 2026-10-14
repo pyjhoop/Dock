@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-confirm"
+description = "Enables the ai_confirm command without any pre-configured scope."
+commands.allow = ["ai_confirm"]
+
+[[permission]]
+identifier = "deny-ai-confirm"
+description = "Denies the ai_confirm command without any pre-configured scope."
+commands.deny = ["ai_confirm"]

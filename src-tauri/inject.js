@@ -7,6 +7,26 @@
   var isTop = window.top === window;
   var host = location.hostname;
 
+  // <a target="_blank"> 클릭은 WebView2가 새 창 요청(on_new_window)으로 앱에 전달하지 않고 삼킨다.
+  // (window.open과 이름 있는 target은 정상 전달된다.) 클릭 직전에 이름 있는 target으로 바꿔 같은 경로로 보낸다.
+  (function () {
+    var NAME = '_dockblank';
+    var fix = function (el) {
+      var t = (el.getAttribute('target') || '').toLowerCase();
+      if (t === '_blank' || t === '_new') el.setAttribute('target', NAME);
+    };
+    document.addEventListener('click', function (e) {
+      var path = e.composedPath ? e.composedPath() : [];
+      for (var i = 0; i < path.length; i++) {
+        var n = path[i];
+        if (n && n.getAttribute && (n.tagName === 'A' || n.tagName === 'AREA') && n.hasAttribute('target')) { fix(n); break; }
+      }
+    }, true);
+    document.addEventListener('submit', function (e) {
+      if (e.target && e.target.getAttribute && e.target.hasAttribute('target')) fix(e.target);
+    }, true);
+  })();
+
   // 웹 Notification -> 네이티브 토스트 (Gmail은 아래 Atom 폴링이 담당하므로 제외)
   if (isTop && host !== 'mail.google.com') {
     var N = function (title, opts) {

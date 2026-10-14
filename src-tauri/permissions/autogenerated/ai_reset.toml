@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-reset"
+description = "Enables the ai_reset command without any pre-configured scope."
+commands.allow = ["ai_reset"]
+
+[[permission]]
+identifier = "deny-ai-reset"
+description = "Denies the ai_reset command without any pre-configured scope."
+commands.deny = ["ai_reset"]

@@ -45,10 +45,13 @@ function applySettings() {
   const dark = s.theme === 'dark' || (s.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   document.documentElement.style.setProperty('--accent', s.accent);
-  $('#app').className = (s.layout === 'top' ? 'layout-top' : 'layout-side') + (s.colorful ? ' colorful' : '');
+  const app = $('#app');
+  app.classList.toggle('layout-top', s.layout === 'top'); app.classList.toggle('layout-side', s.layout !== 'top'); app.classList.toggle('colorful', !!s.colorful);
+  if (!s.ai_enabled && !$('#aipanel').hidden) { $('#aipanel').hidden = true; app.classList.remove('ai-open'); }
   const acc = S.accounts.find((a) => a.id === cur.acc);
   document.documentElement.style.setProperty('--acc', acc?.accent || s.accent);
   requestAnimationFrame(reportRect);
+  aiScope();
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => S && applySettings());
 
@@ -274,7 +277,7 @@ function accountSettings(id) {
 }
 
 // ───────── 설정 ─────────
-const SECTIONS = [['general', '일반'], ['notif', '알림'], ['look', '개인화'], ['security', '보안'], ['dl', '다운로드'], ['about', '정보']];
+const SECTIONS = [['general', '일반'], ['notif', '알림'], ['look', '개인화'], ['security', '보안'], ['ai', 'AI 도우미'], ['dl', '다운로드'], ['about', '정보']];
 function settingsDialog(section = 'general') {
   modal(`<div class="dialog" style="width:min(860px,94vw)"><header>설정<button class="icon" data-close>${XI}</button></header>
     <div class="split"><nav>${SECTIONS.map(([k, n]) => `<button data-sec="${k}" class="${k === section ? 'active' : ''}">${n}</button>`).join('')}</nav><div class="pane" id="pane"></div></div></div>`, (root) => {
@@ -340,6 +343,17 @@ function paintPane(sec) {
     } else {
       $('#p-set').onclick = async () => { const r = ask('새 패스코드 (4자 이상)', false); if (r) { S = await call('set_passcode', { code: r.code, old: null }); render(); paintPane('security'); } };
     }
+  } else if (sec === 'ai') {
+    p.innerHTML = `
+      <div class="row"><div>Claude 도우미 사용<div class="sub">켜면 Claude가 지금 보고 있는 화면의 텍스트·요소·스크린샷을 읽을 수 있어요. 읽은 내용은 Anthropic으로 전송됩니다. 잠금 상태이거나 대화상자가 열려 있으면 읽지 않아요.</div></div>${sw('ai-on', s.ai_enabled)}</div>
+      <div class="row"><div>화면 조작 허용<div class="sub">Claude가 클릭·입력·스크롤을 할 수 있어요. 비밀번호 입력란은 항상 막혀 있어요.</div></div>${sw('ai-ctl', s.ai_control)}</div>
+      <div class="row"><div>조작 승인 방식<div class="sub">전송·삭제·결제처럼 되돌리기 어려운 동작은 어느 쪽이든 항상 물어봐요.</div></div>
+        <select class="ctl" id="ai-conf"><option value="">위험한 동작만 묻기</option><option value="always">모든 조작을 묻기</option></select></div>
+      <div class="row"><div>Claude Code 연결<div class="sub" id="ai-stat">확인 중…</div></div></div>
+      <div class="sub muted" style="margin-top:10px">내 PC에 설치된 Claude Code(<code>claude</code>)의 로그인(구독)을 그대로 사용합니다. 터미널에서 <code>claude</code>로 한 번 로그인해 두세요.</div>`;
+    bindSwitch('ai-on', 'ai_enabled'); bindSwitch('ai-ctl', 'ai_control');
+    $('#ai-conf').value = s.ai_confirm || ''; bindSelect('ai-conf', 'ai_confirm');
+    invoke('ai_status').then((r) => { const e = $('#ai-stat'); if (e) e.textContent = r.claude ? '설치됨' : '찾을 수 없음 — Claude Code를 설치하고 로그인해 주세요'; });
   } else if (sec === 'dl') {
     p.innerHTML = `<div class="row"><div>다운로드 폴더<div class="sub">${esc(s.download_dir || '(Windows 기본 다운로드 폴더)')}</div></div>
       <div class="inline"><button id="d-pick">폴더 선택</button><button id="d-reset">기본값</button></div></div>`;
@@ -461,6 +475,93 @@ listen('login-success', async (e) => {
   if (e.payload.account !== cur.acc || cur.sub >= 0) return;
   S = await call('finish_login', { accountId: cur.acc }); toast('로그인되었습니다'); await selectAccount(cur.acc);
 });
+
+// ───────── Claude 도우미 ─────────
+let aiBusy = false;
+const aiLog = () => $('#ai-log');
+function aiAdd(cls, text) {
+  const d = document.createElement('div'); d.className = cls; d.textContent = text;
+  aiLog().appendChild(d); aiLog().scrollTop = aiLog().scrollHeight; return d;
+}
+function aiHint() {
+  const ctl = S.settings.ai_control;
+  aiLog().innerHTML = '<div class="ai-hint">지금 보고 있는 서비스 화면을 ' + (ctl ? '읽고 조작해요.' : '읽고 답해요.') + '<br>예) “이 메일 요약해줘” · “이 페이지에서 날짜만 뽑아줘”<br>' +
+    (ctl ? '전송·삭제·결제 같은 동작은 먼저 물어봐요.' : '읽기 전용이에요. 설정 → AI 도우미에서 화면 조작을 켤 수 있어요.') + '</div>';
+}
+function aiScope() { const e = $('#ai-scope'); if (e && S) e.textContent = S.settings.ai_control ? '화면 읽기·조작' : '화면 읽기 전용'; }
+const AI_ICON_SEND = '<svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+const AI_ICON_STOP = '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>';
+function aiBusySet(b) {
+  aiBusy = b; const btn = $('#ai-send'); btn.innerHTML = b ? AI_ICON_STOP : AI_ICON_SEND; btn.title = b ? '중지' : '보내기'; btn.classList.toggle('stop', b);
+}
+function aiOpen(open) {
+  $('#aipanel').hidden = !open; $('#app').classList.toggle('ai-open', open);
+  if (open) { aiSyncOpts(); if (!aiLog().children.length) aiHint(); setTimeout(() => $('#ai-input').focus(), 50); }
+  requestAnimationFrame(reportRect);
+}
+// 패널 너비 조절 (웹뷰는 별도 네이티브 창이라 드래그 중에는 pointer capture로 이벤트를 받는다)
+const AI_W = { def: 360, min: 280 };
+const aiMax = () => Math.max(AI_W.min, Math.min(760, innerWidth - 420));
+function aiSetWidth(w, save) {
+  w = Math.round(Math.min(aiMax(), Math.max(AI_W.min, w)));
+  document.documentElement.style.setProperty('--ai-w', w + 'px');
+  if (save) { try { localStorage.setItem('ai-w', String(w)); } catch (e) {} }
+  reportRect();
+}
+try { const w = parseInt(localStorage.getItem('ai-w'), 10); if (w) aiSetWidth(w); } catch (e) {}
+window.addEventListener('resize', () => aiSetWidth(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ai-w'), 10) || AI_W.def));
+const grip = $('#ai-grip');
+grip.onpointerdown = (e) => { grip.setPointerCapture(e.pointerId); grip.classList.add('drag'); };
+grip.onpointermove = (e) => { if (grip.hasPointerCapture(e.pointerId)) aiSetWidth(innerWidth - e.clientX, false); };
+grip.onpointerup = (e) => { grip.releasePointerCapture(e.pointerId); grip.classList.remove('drag'); aiSetWidth(innerWidth - e.clientX, true); };
+grip.ondblclick = () => aiSetWidth(AI_W.def, true);
+
+// 모델 / 추론 강도
+function aiSyncOpts() { aiScope(); $('#ai-model').value = S.settings.ai_model || ''; $('#ai-effort').value = S.settings.ai_effort || ''; }
+$('#ai-model').onchange = (e) => patch({ ai_model: e.target.value });
+$('#ai-effort').onchange = (e) => patch({ ai_effort: e.target.value });
+
+$('#btn-ai').onclick = () => {
+  if (!S.settings.ai_enabled) { settingsDialog('ai'); return; }
+  aiOpen($('#aipanel').hidden);
+};
+$('#ai-close').onclick = () => aiOpen(false);
+$('#ai-reset').onclick = async () => { await invoke('ai_reset'); aiBusySet(false); aiHint(); };
+$('#ai-input').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ai-form').requestSubmit(); } });
+$('#ai-form').onsubmit = async (e) => {
+  e.preventDefault();
+  if (aiBusy) { await invoke('ai_cancel'); return; }
+  const q = $('#ai-input').value.trim(); if (!q) return;
+  if (aiLog().querySelector('.ai-hint')) aiLog().innerHTML = '';
+  $('#ai-input').value = ''; aiAdd('ai-msg user', q);
+  aiBusySet(true);
+  try { await invoke('ai_ask', { prompt: q }); }
+  catch (err) { aiAdd('ai-msg err', typeof err === 'string' ? err : (err?.message || '오류')); aiBusySet(false); }
+};
+const TOOL_LABEL = { snapshot: '화면 구조 읽는 중…', read: '화면 텍스트 읽는 중…', screenshot: '화면 캡처 중…', act: '화면 조작 중' };
+const aiConfirms = {};
+function aiAskConfirm(v) {
+  if ($('#aipanel').hidden) aiOpen(true);
+  const d = document.createElement('div'); d.className = 'ai-confirm';
+  d.innerHTML = `<div class="q">Claude가 이 동작을 하려고 해요</div><div class="what"></div><div class="btns"><button class="danger" data-a="0">거부</button><button class="primary" data-a="1">허용</button></div>`;
+  d.querySelector('.what').textContent = v.text; d.dataset.text = v.text;
+  d.querySelectorAll('button').forEach((b) => (b.onclick = () => { d.querySelectorAll('button').forEach((x) => (x.disabled = true)); invoke('ai_confirm', { id: v.id, allow: b.dataset.a === '1' }); }));
+  aiConfirms[v.id] = d; aiLog().appendChild(d); aiLog().scrollTop = aiLog().scrollHeight;
+}
+listen('ai-event', (e) => {
+  const v = e.payload;
+  if (v.kind === 'text') aiAdd('ai-msg bot', v.text);
+  else if (v.kind === 'tool') aiAdd('ai-tool', (TOOL_LABEL[v.name] || `${v.name}…`) + (v.detail ? `: ${v.detail}` : v.name === 'act' ? '…' : ''));
+  else if (v.kind === 'confirm') aiAskConfirm(v);
+  else if (v.kind === 'confirm-done') {
+    const d = aiConfirms[v.id]; delete aiConfirms[v.id];
+    if (d) { d.classList.add(v.allowed ? 'ok' : 'no'); d.innerHTML = `<div class="what"></div><div class="res">${v.allowed ? '허용함' : '거부함'}</div>`; d.querySelector('.what').textContent = d.dataset.text || ''; }
+  }
+  else if (v.kind === 'error') aiAdd('ai-msg err', v.message);
+  else if (v.kind === 'done') { aiBusySet(false); Object.values(aiConfirms).forEach((d) => d.remove()); }
+});
+
+aiBusySet(false);
 
 (async function init() {
   S = await invoke('get_state');

@@ -104,6 +104,21 @@ pub struct Settings {
     pub passcode_hash: Option<String>,
     #[serde(default)]
     pub passcode_salt: Option<String>,
+    /// Claude 도우미(현재 화면 읽기)를 사용할지. 기본 꺼짐.
+    #[serde(default)]
+    pub ai_enabled: bool,
+    /// Claude 모델 별칭(빈 값이면 claude 기본값)
+    #[serde(default)]
+    pub ai_model: String,
+    /// 추론 강도(빈 값이면 claude 기본값)
+    #[serde(default)]
+    pub ai_effort: String,
+    /// Claude가 화면을 조작(클릭·입력)하도록 허용할지. 기본 꺼짐.
+    #[serde(default)]
+    pub ai_control: bool,
+    /// 조작 승인 방식: "always"(매번 묻기) 또는 빈 값(위험한 동작만 묻기)
+    #[serde(default)]
+    pub ai_confirm: String,
 }
 
 impl Default for Settings {
@@ -128,6 +143,11 @@ impl Default for Settings {
             update_notified: None,
             passcode_hash: None,
             passcode_salt: None,
+            ai_enabled: false,
+            ai_model: String::new(),
+            ai_effort: String::new(),
+            ai_control: false,
+            ai_confirm: String::new(),
         }
     }
 }

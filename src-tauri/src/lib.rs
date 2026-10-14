@@ -1,3 +1,4 @@
+mod ai;
 mod model;
 mod views;
 
@@ -166,7 +167,7 @@ pub fn emit_badges(app: &AppHandle) {
     }
 }
 
-fn log_line(app: &AppHandle, msg: &str) {
+pub(crate) fn log_line(app: &AppHandle, msg: &str) {
     use std::io::Write;
     let dir = app.state::<AppState>().data_root.clone();
     let _ = std::fs::create_dir_all(&dir);
@@ -893,6 +894,37 @@ async fn report_event(app: AppHandle, webview: Webview, event: Value) -> Result<
     Ok(())
 }
 
+// ───────────────────────── AI (Claude CLI, 읽기 전용) ─────────────────────────
+
+#[tauri::command]
+async fn ai_status(app: AppHandle) -> Value {
+    ai::status(&app)
+}
+
+#[tauri::command]
+async fn ai_ask(app: AppHandle, prompt: String) -> Result<(), String> {
+    let prompt = prompt.trim().to_string();
+    if prompt.is_empty() {
+        return Err("질문을 입력해 주세요".into());
+    }
+    ai::ask(&app, prompt)
+}
+
+#[tauri::command]
+async fn ai_cancel() {
+    ai::cancel();
+}
+
+#[tauri::command]
+async fn ai_reset() {
+    ai::reset();
+}
+
+#[tauri::command]
+async fn ai_confirm(id: u64, allow: bool) {
+    ai::answer(id, allow);
+}
+
 // ───────────────────────── system integration ─────────────────────────
 
 /// DOCK_DATA_DIR이 지정된 테스트/개발 실행인지. 이때는 OS 전역 설정(자동 시작, 전역 단축키)을 건드리지 않는다.
@@ -987,7 +1019,8 @@ pub fn run() {
             get_state, add_account, update_account, remove_account, reorder_accounts, set_settings,
             show_view, set_rect, set_overlay, reload_view, view_nav, set_passcode,
             clear_passcode, unlock, lock_app, list_downloads, download_action, clear_downloads,
-            report_event, quit_app, finish_login, open_external, pick_folder, test_notification, check_update, install_update_cmd
+            report_event, quit_app, finish_login, open_external, pick_folder, test_notification, check_update, install_update_cmd,
+            ai_status, ai_ask, ai_cancel, ai_reset, ai_confirm
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -1022,6 +1055,8 @@ pub fn run() {
 
             #[cfg(windows)]
             register_aumid(&handle);
+
+            ai::start_server(&handle);
 
             // 트레이
             let open = MenuItem::with_id(app, "open", "Dock 열기", true, None::<&str>)?;

@@ -176,8 +176,14 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
         let app = app.clone();
         let acc_id = acc_id.to_string();
         let recipe = recipe.clone();
+        // 직접 입력한 서비스는 새 창 링크를 PC 브라우저로 보내지 않고 현재 화면에서 연다
+        // (프리셋 서비스는 받은편지함 같은 화면이 덮이지 않도록 기존대로 외부 브라우저)
+        let inline_blank = recipe.key == "custom";
         b = b.on_new_window(move |u, _f| {
             let s = u.as_str().to_string();
+            // 링크 주소의 쿼리/조각에는 토큰이 들어 있을 수 있으니 로그에는 경로까지만 남긴다
+            let shown = s.split(|c| c == '?' || c == '#').next().unwrap_or("").chars().take(200).collect::<String>();
+            crate::log_line(&app, &format!("새 창 요청: {} (직접입력={})", shown, inline_blank));
             if matches_any(&recipe.popout, &s) {
                 let app = app.clone();
                 let acc_id = acc_id.clone();
@@ -186,7 +192,7 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
                 });
             } else if let Some(other) = sibling_for(&app, &acc_id, &profile, &s) {
                 spawn_route(&app, &other, 0, s);
-            } else if matches_any(&mine, &s) {
+            } else if matches_any(&mine, &s) || (inline_blank && (s.starts_with("http://") || s.starts_with("https://"))) {
                 spawn_route(&app, &acc_id, 0, s);
             } else {
                 open_system(&app, &s);

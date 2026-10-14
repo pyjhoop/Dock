@@ -1,6 +1,6 @@
 [package]
 name = "dock"
-version = "1.0.4"
+version = "1.0.5"
 license = "MIT"
 edition = "2021"
 
@@ -36,3 +36,5 @@ crate-type = ["rlib"]
 [target.'cfg(windows)'.dependencies]
 tauri-winrt-notification = "0.8"
 winreg = "0.55"
+webview2-com = "0.39"
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_System_Com", "Win32_UI_Shell"] }

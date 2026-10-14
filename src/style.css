@@ -1,5 +1,6 @@
 /* Toss 스타일: 밝은 회색 배경 + 흰 표면, 큰 라운드, 토스 블루, 굵은 타이포 */
 :root {
+  --ai-w: 360px;
   --accent: #3182f6;
   --accent-weak: #e8f3ff;
   --bg: #f2f4f6; --panel: #ffffff; --rail: #ffffff;
@@ -164,3 +165,46 @@ h3 { letter-spacing: -0.02em; }
 .acc .thumb.ico img { width: 60%; height: 60%; }
 .svc-ico { width: 26px; height: 26px; border-radius: 8px; flex: none; }
 .svc-ico img { width: 66%; height: 66%; }
+
+/* Claude 도우미 패널 */
+#app.ai-open #main { margin-right: var(--ai-w); }
+#aipanel { position: fixed; top: 0; right: 0; bottom: 0; width: var(--ai-w); background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; }
+#aipanel[hidden] { display: none; }
+#aipanel header { height: 56px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--border); }
+#aipanel header .muted { font-size: 12px; }
+#aipanel header .spacer { flex: 1; }
+#ai-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; user-select: text; }
+.ai-msg { padding: 10px 13px; border-radius: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; font-size: 14px; max-width: 92%; }
+.ai-msg.user { align-self: flex-end; background: var(--accent); color: #fff; }
+.ai-msg.bot { align-self: flex-start; background: var(--field); }
+.ai-msg.err { align-self: stretch; background: var(--danger-weak); color: var(--danger); font-weight: 600; }
+.ai-tool { align-self: flex-start; font-size: 12px; color: var(--muted); font-weight: 600; }
+.ai-hint { color: var(--muted); font-size: 13px; line-height: 1.6; padding: 6px 4px; }
+#ai-grip { position: absolute; left: -4px; top: 0; bottom: 0; width: 9px; cursor: col-resize; z-index: 6; }
+#ai-grip:hover, #ai-grip.drag { background: linear-gradient(to right, transparent 3px, var(--accent) 3px, var(--accent) 5px, transparent 5px); }
+#ai-form { flex: none; padding: 0 12px 12px; }
+.ai-composer { background: var(--field); border: 2px solid transparent; border-radius: 18px; padding: 10px 10px 8px 14px; display: flex; flex-direction: column; gap: 6px; transition: border-color .12s, background .12s; }
+.ai-composer:focus-within { border-color: var(--accent); background: var(--panel); }
+#ai-input { resize: none; font: inherit; color: var(--text); background: transparent; border: 0; outline: 0; padding: 2px 0; width: 100%; box-sizing: border-box; user-select: text; max-height: 160px; }
+.ai-foot { display: flex; align-items: center; gap: 2px; margin-left: -6px; }
+.ai-foot .spacer { flex: 1; }
+.ai-foot select { appearance: none; -webkit-appearance: none; width: auto; border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; padding: 6px 22px 6px 8px; border-radius: 9px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b95a1' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 5px center; background-size: 12px; }
+.ai-foot select:hover { background-color: var(--hover); color: var(--text); }
+.ai-foot select:focus { border: 0; background-color: var(--hover); }
+.ai-send { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.ai-send:hover { background: var(--accent); filter: brightness(.93); }
+.ai-send svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ai-send.stop { background: var(--danger); }
+.ai-send.stop svg { fill: currentColor; stroke: none; }
+.ai-confirm { align-self: stretch; border: 2px solid var(--accent); background: var(--accent-weak); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ai-confirm .q { font-size: 12px; font-weight: 700; color: var(--accent); }
+.ai-confirm .what { font-size: 14px; font-weight: 600; word-break: break-word; user-select: text; }
+.ai-confirm .btns { display: flex; gap: 8px; justify-content: flex-end; }
+.ai-confirm .btns button { padding: 7px 16px; font-size: 13px; }
+.ai-confirm.ok, .ai-confirm.no { border-color: transparent; background: var(--field); flex-direction: row; align-items: center; justify-content: space-between; padding: 8px 12px; }
+.ai-confirm.ok .what, .ai-confirm.no .what { font-size: 13px; font-weight: 500; color: var(--sub); }
+.ai-confirm .res { font-size: 12px; font-weight: 700; flex: none; }
+.ai-confirm.ok .res { color: var(--accent); }
+.ai-confirm.no .res { color: var(--danger); }
