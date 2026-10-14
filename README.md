@@ -58,3 +58,8 @@ UI 창만 모든 커맨드를 호출할 수 있다. 외부 웹페이지(`v-*`, `
 - 숨겨진 서비스 화면은 WebView2가 타이머를 늦출 수 있어 배지/폴링이 최대 1분 단위로 지연될 수 있다.
 - Naver/Daum/Yahoo 등은 제목에 `(N)` 패턴이 없으면 배지가 뜨지 않는다. 필요하면 `recipes.json`의 `badge_regex`를 조정한다.
 - 설치 파일 코드 서명, 스토어 배포는 하지 않는다.
+
+## 라이선스
+- Dock은 [MIT License](LICENSE)로 배포한다. Copyright (c) 2026 pyjhoop.
+- 포함된 외부 구성요소(Rust 의존성, 서비스 아이콘 출처)의 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 정리했다. 의존성이 바뀌면 `python tools/gen_notices.py`로 다시 만든다.
+- 서비스 이름과 로고는 각 소유자의 상표이며, Dock은 해당 소유자와 무관하다.
