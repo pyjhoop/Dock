@@ -100,7 +100,6 @@ function render() {
   const acc = S.accounts.find((a) => a.id === cur.acc);
   $('#loginbar').hidden = !(acc && cur.sub < 0);
   if (acc && cur.sub < 0) $('#login-text').textContent = `${acc.name}: 아래에서 로그인하세요. 완료되면 자동으로 이동해요.`;
-  $('#btn-compose').hidden = !(acc && acc.subs[0]?.is_mail);
 }
 
 function renderTitle() {
@@ -418,7 +417,6 @@ $('#btn-add').onclick = addAccountDialog;
 $('#btn-settings').onclick = () => settingsDialog();
 $('#btn-downloads').onclick = downloadsDialog;
 $('#btn-lock').onclick = () => call('lock_app');
-$('#btn-compose').onclick = () => call('open_compose', { accountId: cur.acc, mailto: null });
 $('#nav-back').onclick = () => call('view_nav', { action: 'back' });
 $('#nav-forward').onclick = () => call('view_nav', { action: 'forward' });
 $('#nav-reload').onclick = () => call('view_nav', { action: 'reload' });

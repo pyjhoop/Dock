@@ -709,11 +709,6 @@ async fn view_nav(app: AppHandle, action: String) {
 }
 
 #[tauri::command]
-async fn open_compose(app: AppHandle, account_id: Option<String>, mailto: Option<String>) -> Result<(), String> {
-    views::compose(&app, account_id, mailto)
-}
-
-#[tauri::command]
 async fn finish_login(app: AppHandle, state: State<'_, AppState>, account_id: String) -> Result<Value, String> {
     views::close_login(&app, &account_id);
     {
@@ -894,7 +889,15 @@ async fn report_event(app: AppHandle, webview: Webview, event: Value) -> Result<
 
 // ───────────────────────── system integration ─────────────────────────
 
+/// DOCK_DATA_DIR이 지정된 테스트/개발 실행인지. 이때는 OS 전역 설정(자동 시작, 전역 단축키)을 건드리지 않는다.
+fn is_isolated_run() -> bool {
+    std::env::var("DOCK_DATA_DIR").map(|v| !v.is_empty()).unwrap_or(false)
+}
+
 fn apply_system_settings(app: &AppHandle) {
+    if is_isolated_run() {
+        return;
+    }
     let (startup, shortcut) = {
         let st = app.state::<AppState>();
         let s = st.store.lock().unwrap();
@@ -959,11 +962,15 @@ fn handle_args(app: &AppHandle, args: &[String]) {
 }
 
 pub fn run() {
-    let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+    let mut builder = tauri::Builder::default();
+    // 격리 실행(DOCK_DATA_DIR)은 실제 사용 중인 Dock과 별개로 뜨도록 단일 인스턴스 제한을 두지 않는다
+    if !is_isolated_run() {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             show_main(app);
             handle_args(app, &args);
-        }))
+        }));
+    }
+    let builder = builder
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -973,7 +980,7 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![
             get_state, add_account, update_account, remove_account, reorder_accounts, set_settings,
-            show_view, set_rect, set_overlay, reload_view, view_nav, open_compose, set_passcode,
+            show_view, set_rect, set_overlay, reload_view, view_nav, set_passcode,
             clear_passcode, unlock, lock_app, list_downloads, download_action, clear_downloads,
             report_event, quit_app, finish_login, open_external, test_notification, check_update, install_update_cmd
         ])
