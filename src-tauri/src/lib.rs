@@ -37,6 +37,11 @@ pub fn recipe_for(acc: &Account) -> Recipe {
     r
 }
 
+/// 이 항목의 세션 쿠키를 디스크에 남길지. 설정이 없으면 직접 입력 서비스만 켠다.
+pub fn keep_login(acc: &Account) -> bool {
+    acc.keep_login.unwrap_or_else(|| recipe_for(acc).key == "custom")
+}
+
 pub fn profile_of(acc: &Account) -> String {
     if acc.profile.is_empty() { acc.id.clone() } else { acc.profile.clone() }
 }
@@ -577,6 +582,7 @@ async fn add_account(
         badges: true,
         logged_in: shared.is_some(),
         profile: shared.unwrap_or_else(|| id.clone()),
+        keep_login: None,
     };
     let logged_in = acc.logged_in;
     state.store.lock().unwrap().accounts.push(acc);
@@ -618,6 +624,9 @@ async fn update_account(app: AppHandle, state: State<'_, AppState>, id: String, 
         }
         if let Some(v) = patch["logged_in"].as_bool() {
             a.logged_in = v;
+        }
+        if let Some(v) = patch["keep_login"].as_bool() {
+            a.keep_login = Some(v);
         }
         if let Some(arr) = patch["pinned"].as_array() {
             for (i, p) in arr.iter().enumerate() {
@@ -1128,6 +1137,12 @@ pub fn run() {
                 std::thread::sleep(std::time::Duration::from_millis(1200));
                 views::preload_all(&h2);
                 handle_args(&h2, &args);
+            });
+            // 로그인 유지: 세션 쿠키를 주기적으로 저장 가능한 쿠키로 바꾼다(페이지 로드 때도 실행됨)
+            let h4 = handle.clone();
+            std::thread::spawn(move || loop {
+                std::thread::sleep(std::time::Duration::from_secs(30));
+                views::persist_all(&h4);
             });
             // 새 버전 확인: 시작 30초 뒤, 이후 6시간마다 (설정에서 끌 수 있음)
             let h3 = handle.clone();

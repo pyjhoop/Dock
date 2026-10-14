@@ -223,6 +223,7 @@ function accountSettings(id) {
         `<button class="swatch ${(a.accent || '') === c ? 'sel' : ''}" data-c="${c}" style="background:${c || 'var(--border)'}" title="${c || '기본'}"></button>`).join('')}</div></div>
       <div class="row"><div>알림</div>${sw('as-notif', a.notifications)}</div>
       <div class="row"><div>배지(읽지 않은 수)</div>${sw('as-badges', a.badges)}</div>
+      <div class="row"><div>로그인 유지<div class="sub">Dock을 껐다 켜도 로그인이 풀리지 않게 세션 쿠키를 저장해요. 사이트가 자체적으로 로그아웃시키는 경우(일정 시간 미사용 등)는 막지 못해요.</div></div>${sw('as-keep', a.keep_login ?? a.service === 'custom')}</div>
       <div class="field" style="margin-top:12px"><label>로그인 세션</label>
         <div class="muted" style="font-size:13px">${esc(providerName(a.service))} · ${esc(svcName(a))}${(() => {
           const mates = S.accounts.filter((x) => x.id !== a.id && (x.profile || x.id) === (a.profile || a.id)).map((x) => x.name);
@@ -253,7 +254,7 @@ function accountSettings(id) {
       S = await call('update_account', { id, patch: {
         name: $('#as-name').value.trim() || a.name, handle: $('#as-handle').value.trim(),
         initials: $('#as-init').value.trim(), thumb: $('#as-thumb').value, picture, accent: accent || null,
-        notifications: $('#as-notif').checked, badges: $('#as-badges').checked,
+        notifications: $('#as-notif').checked, badges: $('#as-badges').checked, keep_login: $('#as-keep').checked,
       } });
       closeModal(); render();
     };

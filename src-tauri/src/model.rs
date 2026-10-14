@@ -68,6 +68,10 @@ pub struct Account {
     /// 로그인 세션(쿠키 폴더) 식별자. 같은 값을 가진 항목은 로그인을 공유한다. 비어 있으면 id와 같다.
     #[serde(default)]
     pub profile: String,
+    /// 로그인 유지: 만료 시간이 없는 세션 쿠키를 디스크에 남겨 Dock을 껐다 켜도 로그인을 유지한다.
+    /// None이면 직접 입력 서비스만 켜진다.
+    #[serde(default)]
+    pub keep_login: Option<bool>,
 }
 
 fn d_thumb() -> String {

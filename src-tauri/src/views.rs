@@ -109,6 +109,7 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
     }
     let acc = find_account(app, acc_id).ok_or("계정 없음")?;
     let recipe = recipe_for(&acc);
+    let keep = crate::keep_login(&acc);
     let (start_url, sub_idx) = if sub < 0 {
         (recipe.login_url.clone(), -1)
     } else {
@@ -214,8 +215,11 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
         let ok = recipe.login_success.clone();
         // 직접 입력 서비스는 성공 패턴이 없으므로, 같은 호스트의 로그인 페이지가 아닌 곳으로 이동하면 성공으로 본다
         let custom_hosts = if recipe.key == "custom" { recipe.subs.first().map(|s| s.handled.clone()).unwrap_or_default() } else { Vec::new() };
-        b = b.on_page_load(move |_wv, p| {
+        b = b.on_page_load(move |wv, p| {
             if p.event() == PageLoadEvent::Finished {
+                if keep {
+                    persist_session_cookies(&wv);
+                }
                 let u = p.url().as_str().to_string();
                 let lu = u.to_lowercase();
                 let custom_ok = !custom_hosts.is_empty()
@@ -224,6 +228,15 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
                 if !lu.contains("setosid") && (matches_any(&ok, &u) || custom_ok) {
                     let _ = app.emit("login-success", json!({ "account": acc_id }));
                 }
+            }
+        });
+    }
+
+    // 로그인 화면이 아닌 일반 화면도 페이지가 로드될 때마다 세션 쿠키를 저장 가능한 쿠키로 바꾼다
+    if sub >= 0 && keep {
+        b = b.on_page_load(move |wv, p| {
+            if p.event() == PageLoadEvent::Finished {
+                persist_session_cookies(&wv);
             }
         });
     }
@@ -494,6 +507,70 @@ pub fn preload_all(app: &AppHandle) {
         preload_account(app, &id);
     }
     apply_visibility(app);
+}
+
+// ───────────────────────── 로그인 유지(세션 쿠키 저장) ─────────────────────────
+
+/// 이 웹뷰 프로필의 세션 쿠키(만료 시간 없음)에 만료 시간을 붙여 디스크에 남게 한다.
+/// WebView2는 세션 쿠키를 앱을 끄면 지우므로, 그런 방식으로 로그인을 유지하는 사이트는 재시작할 때마다 로그아웃된다.
+/// 서버 쪽 세션 만료까지 늘려 주지는 않는다.
+#[cfg(windows)]
+pub fn persist_session_cookies(view: &tauri::Webview) {
+    use webview2_com::GetCookiesCompletedHandler;
+    use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2_2;
+    use windows::core::{Interface, BOOL, HSTRING};
+
+    const KEEP_DAYS: f64 = 30.0;
+    let expires = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0)
+        + KEEP_DAYS * 86400.0;
+    let _ = view.with_webview(move |p| {
+        let _ = (|| -> windows::core::Result<()> {
+            let core = unsafe { p.controller().CoreWebView2()? };
+            let mgr = unsafe { core.cast::<ICoreWebView2_2>()?.CookieManager()? };
+            let mgr2 = mgr.clone();
+            let handler = GetCookiesCompletedHandler::create(Box::new(move |res, list| {
+                if res.is_err() {
+                    return Ok(());
+                }
+                let Some(list) = list else { return Ok(()) };
+                let mut n = 0u32;
+                unsafe { list.Count(&mut n)? };
+                for i in 0..n {
+                    let c = unsafe { list.GetValueAtIndex(i)? };
+                    let mut is_session = BOOL(0);
+                    unsafe { c.IsSession(&mut is_session)? };
+                    if is_session.as_bool() {
+                        unsafe {
+                            c.SetExpires(expires)?;
+                            let _ = mgr2.AddOrUpdateCookie(&c);
+                        }
+                    }
+                }
+                Ok(())
+            }));
+            // 빈 주소 = 이 프로필의 모든 쿠키
+            unsafe { mgr.GetCookies(&HSTRING::new(), &handler) }
+        })();
+    });
+}
+
+#[cfg(not(windows))]
+pub fn persist_session_cookies(_view: &tauri::Webview) {}
+
+/// 로그인 유지가 켜진 서비스의 열려 있는 화면 전부에 적용한다(주기 실행용).
+pub fn persist_all(app: &AppHandle) {
+    for (label, view) in app.webviews() {
+        if !label.starts_with("v-") {
+            continue;
+        }
+        let keep = account_of_label(&label).and_then(|id| find_account(app, &id)).map(|a| crate::keep_login(&a)).unwrap_or(false);
+        if keep {
+            persist_session_cookies(&view);
+        }
+    }
 }
 
 // ───────────────────────── 작업표시줄 배지 아이콘 ─────────────────────────
