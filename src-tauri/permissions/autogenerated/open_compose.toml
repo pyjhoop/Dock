@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-compose"
+description = "Enables the open_compose command without any pre-configured scope."
+commands.allow = ["open_compose"]
+
+[[permission]]
+identifier = "deny-open-compose"
+description = "Denies the open_compose command without any pre-configured scope."
+commands.deny = ["open_compose"]

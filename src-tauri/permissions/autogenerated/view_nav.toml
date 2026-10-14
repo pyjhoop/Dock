@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-view-nav"
+description = "Enables the view_nav command without any pre-configured scope."
+commands.allow = ["view_nav"]
+
+[[permission]]
+identifier = "deny-view-nav"
+description = "Denies the view_nav command without any pre-configured scope."
+commands.deny = ["view_nav"]

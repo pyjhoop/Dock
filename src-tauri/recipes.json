@@ -1,0 +1,112 @@
+{
+  "services": [
+    {
+      "key": "google", "name": "Google", "color": "#C2410C",
+      "login_url": "https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F",
+      "login_success": ["^https://mail\\.google\\.com/"],
+      "logout": [],
+      "chrome_ua_hosts": ["accounts.google.com"],
+      "popout": ["^https://mail\\.google\\.com/mail/.*(view=cm|view=pt)", "^https://mail\\.google\\.com/mail/.*popout"],
+      "compose": "https://mail.google.com/mail/?view=cm&fs=1&to={to}&cc={cc}&bcc={bcc}&su={subject}&body={body}",
+      "subs": [
+        {"name": "Gmail", "url": "https://mail.google.com/mail/u/0/", "pinned": true, "is_mail": true, "handled": ["^https?://mail\\.google\\.com/"]},
+        {"name": "Calendar", "url": "https://calendar.google.com/calendar/u/0/", "pinned": true, "handled": ["^https?://calendar\\.google\\.com/"]},
+        {"name": "Contacts", "url": "https://contacts.google.com/", "pinned": true, "handled": ["^https?://contacts\\.google\\.com/"]},
+        {"name": "Keep", "url": "https://keep.google.com/", "handled": ["^https?://keep\\.google\\.com/"]},
+        {"name": "Tasks", "url": "https://tasks.google.com/embed/?origin=https://calendar.google.com", "handled": ["^https?://tasks\\.google\\.com/"]},
+        {"name": "Drive", "url": "https://drive.google.com/", "handled": ["^https?://drive\\.google\\.com/"]},
+        {"name": "Meet", "url": "https://meet.google.com/", "handled": ["^https?://meet\\.google\\.com/"]},
+        {"name": "Chat", "url": "https://chat.google.com/", "handled": ["^https?://chat\\.google\\.com/"]},
+        {"name": "Photos", "url": "https://photos.google.com/", "handled": ["^https?://photos\\.google\\.com/"]},
+        {"name": "Maps", "url": "https://maps.google.com/", "handled": ["^https?://maps\\.google\\.com/"]},
+        {"name": "News", "url": "https://news.google.com/", "handled": ["^https?://news\\.google\\.com/"]},
+        {"name": "Translate", "url": "https://translate.google.com/", "handled": ["^https?://translate\\.google\\.com/"]},
+        {"name": "Classroom", "url": "https://classroom.google.com/", "handled": ["^https?://classroom\\.google\\.com/"]},
+        {"name": "Gemini", "url": "https://gemini.google.com/", "handled": ["^https?://gemini\\.google\\.com/"]}
+      ]
+    },
+    {
+      "key": "microsoft", "name": "Microsoft", "color": "#1D4ED8",
+      "login_url": "https://outlook.live.com/mail/",
+      "login_success": ["^https://outlook\\.live\\.com/mail/"],
+      "logout": [],
+      "popout": ["^https://outlook\\.live\\.com/mail/deeplink/"],
+      "compose": "https://outlook.live.com/mail/deeplink/compose?to={to}&cc={cc}&bcc={bcc}&subject={subject}&body={body}",
+      "subs": [
+        {"name": "Mail", "url": "https://outlook.live.com/mail/0/", "pinned": true, "is_mail": true, "handled": ["^https?://outlook\\.live\\.com/mail"]},
+        {"name": "Calendar", "url": "https://outlook.live.com/calendar/0/", "pinned": true, "handled": ["^https?://outlook\\.live\\.com/calendar"]},
+        {"name": "People", "url": "https://outlook.live.com/people/0/", "handled": ["^https?://outlook\\.live\\.com/people"]},
+        {"name": "To Do", "url": "https://to-do.live.com/tasks/", "handled": ["^https?://to-do\\.(live|office|microsoft)\\.com/"]},
+        {"name": "Teams", "url": "https://teams.live.com/", "badge_regex": "^\\((\\d+)\\)", "handled": ["^https?://teams\\.(live\\.com|microsoft\\.com)/"]},
+        {"name": "OneDrive", "url": "https://onedrive.live.com/", "handled": ["^https?://onedrive\\.live\\.com/"]}
+      ]
+    },
+    {
+      "key": "naver", "name": "Naver", "color": "#15803D",
+      "login_url": "https://nid.naver.com/nidlogin.login",
+      "login_success": ["^https://(www|mail)\\.naver\\.com"],
+      "logout": [],
+      "popout": ["mail\\.naver\\.com/.*(popup|write|read)"],
+      "compose": "https://mail.naver.com/v2/new?to={to}&subject={subject}&body={body}",
+      "subs": [
+        {"name": "Mail", "url": "https://mail.naver.com/", "pinned": true, "is_mail": true, "handled": ["^https?://mail\\.naver\\.com"]},
+        {"name": "Calendar", "url": "https://calendar.naver.com/", "pinned": true, "handled": ["^https?://calendar\\.naver\\.com"]},
+        {"name": "Cloud", "url": "https://mybox.naver.com/", "handled": ["^https?://mybox\\.naver\\.com"]}
+      ]
+    },
+    {
+      "key": "daum", "name": "Daum / Kakao", "color": "#CA8A04",
+      "login_url": "https://accounts.kakao.com/login/?continue=https%3A%2F%2Fmail.daum.net",
+      "login_success": ["^https://mail\\.daum\\.net"],
+      "logout": [],
+      "subs": [
+        {"name": "Mail", "url": "https://mail.daum.net/", "pinned": true, "is_mail": true, "handled": ["^https?://mail\\.daum\\.net"]}
+      ]
+    },
+    {
+      "key": "yahoo", "name": "Yahoo", "color": "#7C3AED",
+      "login_url": "https://login.yahoo.com/",
+      "login_success": ["^https://mail\\.yahoo\\.com"],
+      "logout": [],
+      "subs": [
+        {"name": "Mail", "url": "https://mail.yahoo.com/", "pinned": true, "is_mail": true, "handled": ["^https?://mail\\.yahoo\\.com"]}
+      ]
+    },
+    {
+      "key": "slack", "name": "Slack", "color": "#611F69",
+      "login_url": "https://slack.com/signin",
+      "login_success": ["^https://app\\.slack\\.com/client"],
+      "logout": [],
+      "subs": [
+        {"name": "Slack", "url": "https://app.slack.com/client", "handled": ["^https?://app\\.slack\\.com", "^https?://[a-z0-9-]+\\.slack\\.com"]}
+      ]
+    },
+    {
+      "key": "notion", "name": "Notion", "color": "#37352F",
+      "login_url": "https://www.notion.so/login",
+      "login_success": [],
+      "logout": [],
+      "subs": [
+        {"name": "Notion", "url": "https://www.notion.so/", "handled": ["^https?://www\\.notion\\.so", "^https?://[a-z0-9-]+\\.notion\\.site"]}
+      ]
+    },
+    {
+      "key": "discord", "name": "Discord", "color": "#5865F2",
+      "login_url": "https://discord.com/login",
+      "login_success": ["^https://discord\\.com/channels"],
+      "logout": [],
+      "subs": [
+        {"name": "Discord", "url": "https://discord.com/app", "handled": ["^https?://discord\\.com"]}
+      ]
+    },
+    {
+      "key": "telegram", "name": "Telegram", "color": "#2AABEE",
+      "login_url": "https://web.telegram.org/a/",
+      "login_success": [],
+      "logout": [],
+      "subs": [
+        {"name": "Telegram", "url": "https://web.telegram.org/a/", "handled": ["^https?://web\\.telegram\\.org"]}
+      ]
+    }
+  ]
+}

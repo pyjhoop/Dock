@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-passcode"
+description = "Enables the set_passcode command without any pre-configured scope."
+commands.allow = ["set_passcode"]
+
+[[permission]]
+identifier = "deny-set-passcode"
+description = "Denies the set_passcode command without any pre-configured scope."
+commands.deny = ["set_passcode"]

@@ -1,0 +1,7 @@
+{
+  "identifier": "remote-pages",
+  "windows": ["main", "pop-*"],
+  "webviews": ["v-*", "pop-*"],
+  "remote": { "urls": ["https://*", "https://*:*", "http://*", "http://*:*"] },
+  "permissions": ["allow-report-event"]
+}
