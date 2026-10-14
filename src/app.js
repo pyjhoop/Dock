@@ -344,7 +344,7 @@ function paintPane(sec) {
     p.innerHTML = `<div class="row"><div>다운로드 폴더<div class="sub">${esc(s.download_dir || '(Windows 기본 다운로드 폴더)')}</div></div>
       <div class="inline"><button id="d-pick">폴더 선택</button><button id="d-reset">기본값</button></div></div>`;
     $('#d-pick').onclick = async () => {
-      const dir = await window.__TAURI__.dialog.open({ directory: true });
+      const dir = await call('pick_folder');
       if (dir) { await patch({ download_dir: dir }); paintPane('dl'); }
     };
     $('#d-reset').onclick = async () => { await patch({ download_dir: null }); paintPane('dl'); };

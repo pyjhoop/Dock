@@ -698,6 +698,12 @@ async fn set_overlay(app: AppHandle, on: bool) {
     views::apply_visibility(&app);
 }
 
+/// 폴더 선택 창. tauri-plugin-dialog는 외부 웹페이지의 alert/confirm까지 가로채 막아 버리므로 쓰지 않는다.
+#[tauri::command]
+async fn pick_folder() -> Option<String> {
+    rfd::AsyncFileDialog::new().pick_folder().await.map(|h| h.path().to_string_lossy().to_string())
+}
+
 #[tauri::command]
 async fn reload_view(app: AppHandle) {
     views::nav(&app, "reload");
@@ -972,7 +978,6 @@ pub fn run() {
     }
     let builder = builder
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--startup"])));
@@ -982,7 +987,7 @@ pub fn run() {
             get_state, add_account, update_account, remove_account, reorder_accounts, set_settings,
             show_view, set_rect, set_overlay, reload_view, view_nav, set_passcode,
             clear_passcode, unlock, lock_app, list_downloads, download_action, clear_downloads,
-            report_event, quit_app, finish_login, open_external, test_notification, check_update, install_update_cmd
+            report_event, quit_app, finish_login, open_external, pick_folder, test_notification, check_update, install_update_cmd
         ])
         .setup(|app| {
             let handle = app.handle().clone();

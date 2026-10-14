@@ -4,7 +4,7 @@ fn main() {
         "set_settings", "show_view", "set_rect", "set_overlay", "reload_view", "view_nav",
         "set_passcode", "clear_passcode", "unlock", "lock_app", "list_downloads",
         "download_action", "clear_downloads", "report_event", "quit_app", "finish_login",
-        "open_external", "test_notification", "check_update", "install_update_cmd",
+        "open_external", "pick_folder", "test_notification", "check_update", "install_update_cmd",
     ];
     tauri_build::try_build(
         tauri_build::Attributes::new()
