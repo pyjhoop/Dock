@@ -34,6 +34,9 @@ pub struct Recipe {
     pub chrome_ua_hosts: Vec<String>,
     #[serde(default)]
     pub popout: Vec<String>,
+    /// 로그인(OAuth) 팝업으로 보고 opener 관계를 유지한 채 앱 안에서 열 주소 패턴(기본 목록에 추가)
+    #[serde(default)]
+    pub auth_popup: Vec<String>,
     #[serde(default)]
     pub compose: Option<String>,
     #[serde(default)]

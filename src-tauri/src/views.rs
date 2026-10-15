@@ -11,6 +11,29 @@ use tauri::{AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, Url, Webv
 const INJECT: &str = include_str!("../inject.js");
 const CHROME_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
+/// "Google로 계속하기" 같은 소셜 로그인 팝업 주소. 결과를 window.opener로 돌려주므로 앱 안의 새 창으로 열어야 한다.
+const AUTH_POPUP_HOSTS: &[&str] = &[
+    r"^https://accounts\.google\.com/",
+    r"^https://appleid\.apple\.com/",
+    r"^https://login\.microsoftonline\.com/",
+    r"^https://login\.live\.com/",
+    r"^https://github\.com/login/",
+    r"^https://www\.facebook\.com/(v[\d.]+/)?dialog/",
+    r"^https://kauth\.kakao\.com/",
+    r"^https://nid\.naver\.com/oauth",
+    // Notion이 로그인 전에 팝업 차단 여부를 검사하는 창(열려서 응답해야 로그인 단계로 넘어간다)
+    r"^https://([a-z0-9-]+\.)?notion\.(so|com)/verifyNoPopupBlocker",
+];
+
+fn is_auth_popup(recipe: &Recipe, url: &str) -> bool {
+    AUTH_POPUP_HOSTS.iter().any(|p| matches_any(&[p.to_string()], url)) || matches_any(&recipe.auth_popup, url)
+}
+
+/// 임베디드 웹뷰 UA로는 구글 로그인이 막히므로 Chrome UA를 쓸 서비스
+fn wants_chrome_ua(recipe: &Recipe) -> bool {
+    !recipe.chrome_ua_hosts.is_empty() || recipe.key == "notion" || recipe.key == "custom"
+}
+
 pub fn view_label(acc: &str, sub: i32) -> String {
     if sub < 0 {
         format!("v-{}-login", acc)
@@ -20,7 +43,7 @@ pub fn view_label(acc: &str, sub: i32) -> String {
 }
 
 pub fn account_of_label(label: &str) -> Option<String> {
-    let rest = label.strip_prefix("v-").or_else(|| label.strip_prefix("pop-"))?;
+    let rest = label.strip_prefix("v-").or_else(|| label.strip_prefix("pop-")).or_else(|| label.strip_prefix("auth-"))?;
     Some(rest.split('-').next()?.to_string())
 }
 
@@ -122,7 +145,7 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
     let mut b = WebviewBuilder::new(&label, WebviewUrl::External(url))
         .data_directory(profile_dir(app, acc_id))
         .initialization_script(init_script(&recipe));
-    if !recipe.chrome_ua_hosts.is_empty() {
+    if wants_chrome_ua(&recipe) {
         b = b.user_agent(CHROME_UA);
     }
 
@@ -180,11 +203,42 @@ fn ensure_view(app: &AppHandle, acc_id: &str, sub: i32, url_override: Option<Str
         // 직접 입력한 서비스는 새 창 링크를 PC 브라우저로 보내지 않고 현재 화면에서 연다
         // (프리셋 서비스는 받은편지함 같은 화면이 덮이지 않도록 기존대로 외부 브라우저)
         let inline_blank = recipe.key == "custom";
-        b = b.on_new_window(move |u, _f| {
+        b = b.on_new_window(move |u, f| {
             let s = u.as_str().to_string();
             // 링크 주소의 쿼리/조각에는 토큰이 들어 있을 수 있으니 로그에는 경로까지만 남긴다
             let shown = s.split(|c| c == '?' || c == '#').next().unwrap_or("").chars().take(200).collect::<String>();
             crate::log_line(&app, &format!("새 창 요청: {} (직접입력={})", shown, inline_blank));
+            // 소셜 로그인 팝업: 부모와 같은 세션/opener를 유지한 앱 내 창으로 연다
+            if is_auth_popup(&recipe, &s) {
+                let label = format!("auth-{}-{}", acc_id, uuid::Uuid::new_v4().simple());
+                let mut pb = WebviewWindowBuilder::new(&app, label, WebviewUrl::External("about:blank".parse().unwrap()))
+                    .title("Dock — 로그인")
+                    .inner_size(500.0, 680.0)
+                    .window_features(f)
+                    .initialization_script(init_script(&recipe))
+                    .on_page_load({
+                        let app = app.clone();
+                        move |_w, p| {
+                            let u = p.url();
+                            let ev = if p.event() == PageLoadEvent::Finished { "끝" } else { "시작" };
+                            crate::log_line(&app, &format!("인증 팝업 로드 {}: {}{}", ev, u.host_str().unwrap_or(""), u.path()));
+                        }
+                    });
+                if wants_chrome_ua(&recipe) {
+                    pb = pb.user_agent(CHROME_UA);
+                }
+                match pb.build() {
+                    Ok(window) => {
+                        crate::log_line(&app, "인증 팝업 열림");
+                        return NewWindowResponse::Create { window };
+                    }
+                    Err(e) => {
+                        crate::log_line(&app, &format!("인증 팝업 생성 실패: {}", e));
+                        open_system(&app, &s);
+                        return NewWindowResponse::Deny;
+                    }
+                }
+            }
             if matches_any(&recipe.popout, &s) {
                 let app = app.clone();
                 let acc_id = acc_id.clone();
@@ -319,7 +373,7 @@ fn open_popup(app: &AppHandle, acc_id: &str, url: &str) -> Result<(), String> {
         .inner_size(960.0, 720.0)
         .data_directory(profile_dir(app, acc_id))
         .initialization_script(init_script(&recipe));
-    if !recipe.chrome_ua_hosts.is_empty() {
+    if wants_chrome_ua(&recipe) {
         b = b.user_agent(CHROME_UA);
     }
     b.build().map(|_| ()).map_err(|e| e.to_string())

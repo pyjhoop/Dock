@@ -84,6 +84,7 @@
     {
       "key": "notion", "name": "Notion", "color": "#37352F",
       "login_url": "https://www.notion.so/login",
+      "chrome_ua_hosts": ["accounts.google.com"],
       "login_success": [],
       "logout": [],
       "subs": [
